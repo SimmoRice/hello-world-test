@@ -21,3 +21,7 @@ __pycache__/
 .coverage
 .pytest_cache/
 htmlcov/
+
+# Node
+node_modules/
+package-lock.json
