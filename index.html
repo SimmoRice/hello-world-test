@@ -7,7 +7,12 @@
 
     <!-- Security Headers: Content Security Policy to prevent XSS attacks -->
     <!-- Restricts content sources to same origin only, no inline scripts allowed -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; font-src 'self';">
+    <!-- Note: 'unsafe-inline' for style-src is required for inline styles in this static page -->
+    <!-- In production, consider extracting styles to external CSS file -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; font-src 'self'; frame-ancestors 'none'; base-uri 'self';">
+
+    <!-- Security: Prevent clickjacking attacks -->
+    <meta http-equiv="X-Frame-Options" content="DENY">
 
     <!-- Security: Prevent MIME type sniffing -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
