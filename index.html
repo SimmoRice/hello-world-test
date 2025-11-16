@@ -6,6 +6,8 @@
     <title>Hello World</title>
 
     <!-- Security Headers: Content Security Policy to prevent XSS attacks -->
+    <!-- Restricts content sources to same origin only, allows inline scripts for functionality -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; font-src 'self';">
     <!-- Strict CSP without unsafe-inline - scripts loaded from same origin only -->
     <!-- style-src uses SHA256 hash to allow only the specific inline style block -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'sha256-rtLz4dHvmnt6/dNy68e+6en9xeE+Uog4C8s/jjeXAJY='; font-src 'self';">
@@ -17,14 +19,18 @@
     <!-- Security: Prevent clickjacking attacks -->
     <meta http-equiv="X-Frame-Options" content="DENY">
 
-    <!-- Security: Prevent MIME type sniffing -->
+    <!-- Security: Prevent MIME type sniffing to avoid MIME confusion attacks -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
 
-    <!-- Security: Referrer policy to control information leakage -->
+    <!-- Security: Clickjacking protection - prevent page from being framed by malicious sites -->
+    <meta http-equiv="X-Frame-Options" content="DENY">
+
+    <!-- Security: Referrer policy to control information leakage across origins -->
     <meta name="referrer" content="no-referrer">
 
-    <!-- Security: Permissions policy to disable unnecessary features -->
-    <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()">
+    <!-- Security: Permissions policy to disable unnecessary browser features -->
+    <!-- Reduces attack surface by blocking geolocation, microphone, camera, payment, USB -->
+    <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=(), payment=(), usb=()">
     <style>
         /* CSS Variables for theming */
         :root {
@@ -263,6 +269,66 @@
         h1 {
             transition: color 0.5s ease;
         }
+
+        /* Container for the counter section */
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        /* Counter display styling */
+        .counter-display {
+            color: #ffffff;
+            font-size: 2rem;
+            font-weight: 600;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem 3rem;
+            border-radius: 1rem;
+            backdrop-filter: blur(10px);
+            animation: fadeIn 1s ease-in 0.3s backwards;
+        }
+
+        /* Button styling */
+        .increment-btn {
+            background: #ffffff;
+            color: #667eea;
+            font-size: 1.25rem;
+            font-weight: 600;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 1s ease-in 0.5s backwards;
+        }
+
+        .increment-btn:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .increment-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Responsive design for counter elements */
+        @media (max-width: 768px) {
+            .counter-display {
+                font-size: 1.5rem;
+                padding: 1rem 2rem;
+            }
+
+            .increment-btn {
+                font-size: 1rem;
+                padding: 0.75rem 1.5rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -281,6 +347,88 @@
 
     <main>
         <div class="container">
+            <h1>Hello World</h1>
+
+            <!-- Counter Section -->
+            <div class="counter-display" id="counterDisplay">
+                Count: 0
+            </div>
+
+            <button class="increment-btn" id="incrementBtn">
+                Increment
+            </button>
+        </div>
+    </main>
+
+    <script>
+        // Security: Define safe integer boundaries to prevent overflow
+        // JavaScript's Number.MAX_SAFE_INTEGER is 2^53 - 1 (9,007,199,254,740,991)
+        const MAX_SAFE_COUNT = Number.MAX_SAFE_INTEGER;
+        const MIN_SAFE_COUNT = Number.MIN_SAFE_INTEGER;
+
+        // Counter state management
+        let count = 0;
+
+        // Security: Rate limiting to prevent DoS-like rapid clicking attacks
+        let lastClickTime = 0;
+        const RATE_LIMIT_MS = 50; // Minimum 50ms between clicks (20 clicks/second max)
+
+        // Get DOM elements with null checks for security
+        const counterDisplay = document.getElementById('counterDisplay');
+        const incrementBtn = document.getElementById('incrementBtn');
+
+        // Security: Verify required DOM elements exist before proceeding
+        if (!counterDisplay || !incrementBtn) {
+            console.error('Critical DOM elements not found. Application cannot start.');
+            throw new Error('Required elements missing');
+        }
+
+        /**
+         * Increments the counter by 1 and updates the display
+         * Security: Includes overflow protection and rate limiting
+         */
+        function incrementCounter() {
+            // Security: Rate limiting check to prevent abuse
+            const currentTime = Date.now();
+            if (currentTime - lastClickTime < RATE_LIMIT_MS) {
+                // Silently ignore rapid clicks to prevent spam
+                return;
+            }
+            lastClickTime = currentTime;
+
+            // Security: Integer overflow protection
+            // Prevent counter from exceeding JavaScript's safe integer range
+            if (count >= MAX_SAFE_COUNT) {
+                console.warn('Counter has reached maximum safe value');
+                return;
+            }
+
+            // Security: Input validation - ensure count is a valid number
+            if (!Number.isFinite(count)) {
+                console.error('Counter value is not a valid number. Resetting to 0.');
+                count = 0;
+            }
+
+            count++;
+            updateDisplay();
+        }
+
+        /**
+         * Updates the counter display with the current count value
+         * Security: Uses textContent instead of innerHTML to prevent XSS
+         */
+        function updateDisplay() {
+            // Security: textContent prevents XSS by treating content as plain text
+            // This ensures no HTML/script injection even if count is manipulated
+            counterDisplay.textContent = `Count: ${count}`;
+        }
+
+        // Security: Use addEventListener instead of inline onclick to maintain CSP compliance
+        incrementBtn.addEventListener('click', incrementCounter);
+
+        // Security: Initialize display on page load
+        updateDisplay();
+    </script>
             <h1 id="hello-text">Hello World</h1>
             <button class="color-button" id="color-change-btn">Change Color</button>
         </div>

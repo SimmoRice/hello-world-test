@@ -259,6 +259,28 @@ class TestSecurityHeaders:
         assert len(permissions_tags) > 0, \
             "Page should include Permissions-Policy meta tag"
 
+    def test_javascript_follows_security_practices(self, html_content):
+        """Test that JavaScript (when present) follows security best practices"""
+        # Check for script tags
+        has_script_tag = re.search(r'<script[^>]*>', html_content, re.IGNORECASE)
+
+        # If JavaScript is present, verify it follows security best practices
+        if has_script_tag:
+            # Verify textContent is used instead of innerHTML (XSS prevention)
+            assert 'textContent' in html_content or 'innerText' in html_content, \
+                "JavaScript should use textContent/innerText instead of innerHTML for security"
+
+            # Verify no eval() usage (security risk)
+            has_eval = re.search(r'\beval\s*\(', html_content, re.IGNORECASE)
+            assert not has_eval, "JavaScript should not use eval() (security risk)"
+
+            # Verify no document.write() usage (security/performance risk)
+            has_doc_write = re.search(r'document\.write\s*\(', html_content, re.IGNORECASE)
+            assert not has_doc_write, "JavaScript should not use document.write() (security risk)"
+
+        # Always check for inline event handlers (even without script tags)
+        # Look for on* attributes in HTML tags (onclick, onload, etc.)
+        has_inline_events = re.search(r'<[^>]+\son\w+\s*=\s*["\']', html_content, re.IGNORECASE)
     def test_no_inline_javascript(self, html_content):
         """Test that page doesn't include inline JavaScript (security best practice)"""
         # Check for inline script tags (with content inside)
@@ -270,7 +292,7 @@ class TestSecurityHeaders:
 
         assert not has_inline_script, "Page should not include inline <script> tags with code"
         assert not has_inline_events, \
-            "Page should not include inline event handlers (onclick, onload, etc.)"
+            "Page should not include inline event handlers (onclick, onload, etc.) - use addEventListener instead"
 
 
 class TestAccessibility:
