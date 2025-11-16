@@ -7,7 +7,12 @@
 
     <!-- Security Headers: Content Security Policy to prevent XSS attacks -->
     <!-- Restricts content sources to same origin only, no inline scripts allowed -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; font-src 'self';">
+    <!-- Note: 'unsafe-inline' for style-src is required for inline styles in this static page -->
+    <!-- In production, consider extracting styles to external CSS file -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; font-src 'self'; frame-ancestors 'none'; base-uri 'self';">
+
+    <!-- Security: Prevent clickjacking attacks -->
+    <meta http-equiv="X-Frame-Options" content="DENY">
 
     <!-- Security: Prevent MIME type sniffing -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
@@ -64,11 +69,54 @@
                 font-size: 2.5rem;
             }
         }
+
+        /* Container for centering content vertically */
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        /* Style the color change button */
+        .color-button {
+            background-color: #ffffff;
+            color: #667eea;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .color-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+            background-color: #f0f0f0;
+        }
+
+        .color-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Add transition for smooth color changes */
+        h1 {
+            transition: color 0.5s ease;
+        }
     </style>
 </head>
 <body>
     <main>
-        <h1>Hello World</h1>
+        <div class="container">
+            <h1 id="hello-text">Hello World</h1>
+            <button class="color-button" id="color-change-btn">Change Color</button>
+        </div>
     </main>
+    <script src="script.js"></script>
 </body>
 </html>
