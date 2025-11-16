@@ -76,9 +76,51 @@ function changeTextColor() {
     textElement.style.color = newColor;
 }
 
+/**
+ * Calculator Feature
+ * Handles addition of two numbers and displays the result
+ */
+
+/**
+ * Add two numbers together
+ * Handles both integers and decimal numbers
+ * @param {number} num1 - First number
+ * @param {number} num2 - Second number
+ * @returns {number} The sum of num1 and num2
+ */
+function addNumbers(num1, num2) {
+    return num1 + num2;
+}
+
+/**
+ * Calculate and display the result of adding two input numbers
+ */
+function calculateSum() {
+    const input1 = document.getElementById('number1');
+    const input2 = document.getElementById('number2');
+    const resultDisplay = document.getElementById('result-display');
+
+    // Validate that all elements exist
+    if (!input1 || !input2 || !resultDisplay) {
+        console.error('Calculator elements not found in DOM');
+        return;
+    }
+
+    // Parse the input values as numbers
+    const num1 = parseFloat(input1.value);
+    const num2 = parseFloat(input2.value);
+
+    // Calculate the sum
+    const result = addNumbers(num1, num2);
+
+    // Display the result
+    resultDisplay.textContent = `Result: ${result}`;
+}
+
 // Initialize the event listener when the DOM is fully loaded
 // Security: Using DOMContentLoaded to ensure safe DOM access
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize color change button
     const button = document.getElementById('color-change-btn');
 
     // Security: Validate button element exists before attaching event listeners
@@ -104,4 +146,29 @@ document.addEventListener('DOMContentLoaded', function() {
             changeTextColor();
         }
     });
+
+    // Initialize calculator button
+    const calculateBtn = document.getElementById('calculate-btn');
+
+    if (!calculateBtn) {
+        console.error('Calculate button not found in DOM');
+        return;
+    }
+
+    // Add click event listener to the calculate button
+    calculateBtn.addEventListener('click', calculateSum);
+
+    // Add keyboard support for Enter key on calculator inputs
+    const input1 = document.getElementById('number1');
+    const input2 = document.getElementById('number2');
+
+    if (input1 && input2) {
+        [input1, input2].forEach(input => {
+            input.addEventListener('keydown', function(event) {
+                if (event && event.key === 'Enter') {
+                    calculateSum();
+                }
+            });
+        });
+    }
 });
