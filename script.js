@@ -79,42 +79,170 @@ function changeTextColor() {
 /**
  * Calculator Feature
  * Handles addition of two numbers and displays the result
+ *
+ * Security considerations:
+ * - Input validation to prevent NaN and invalid calculations
+ * - Bounds checking for extremely large numbers
+ * - XSS prevention through textContent usage (not innerHTML)
+ * - Rate limiting to prevent DoS attacks
  */
 
+// Security: Rate limiting for calculate button to prevent DoS
+let lastCalculateTime = 0;
+const CALCULATE_RATE_LIMIT_MS = 100; // Minimum 100ms between calculations
+
+// Security: Maximum safe values to prevent overflow and performance issues
+const MAX_SAFE_NUMBER = Number.MAX_SAFE_INTEGER; // 9007199254740991
+const MIN_SAFE_NUMBER = Number.MIN_SAFE_INTEGER; // -9007199254740991
+
 /**
- * Add two numbers together
+ * Validate and sanitize numeric input
+ * Security: Prevents NaN, Infinity, and out-of-bounds values
+ * @param {string} value - The input value to validate
+ * @param {string} fieldName - Name of the field for error messages
+ * @returns {Object} Object containing isValid boolean and sanitized number or error message
+ */
+function validateNumberInput(value, fieldName) {
+    // Security: Check for empty or whitespace-only input
+    if (!value || value.trim() === '') {
+        return {
+            isValid: false,
+            error: `${fieldName} is required`
+        };
+    }
+
+    // Security: Parse and validate the number
+    const num = parseFloat(value);
+
+    // Security: Check for NaN (invalid number format)
+    if (isNaN(num)) {
+        return {
+            isValid: false,
+            error: `${fieldName} must be a valid number`
+        };
+    }
+
+    // Security: Check for Infinity
+    if (!isFinite(num)) {
+        return {
+            isValid: false,
+            error: `${fieldName} is too large`
+        };
+    }
+
+    // Security: Check for values outside safe integer range
+    if (num > MAX_SAFE_NUMBER || num < MIN_SAFE_NUMBER) {
+        return {
+            isValid: false,
+            error: `${fieldName} is outside safe range`
+        };
+    }
+
+    // Security: Return sanitized number
+    return {
+        isValid: true,
+        value: num
+    };
+}
+
+/**
+ * Add two numbers together with overflow protection
  * Handles both integers and decimal numbers
+ * Security: Validates inputs and checks for overflow
  * @param {number} num1 - First number
  * @param {number} num2 - Second number
- * @returns {number} The sum of num1 and num2
+ * @returns {Object} Object containing success boolean and result or error
  */
 function addNumbers(num1, num2) {
-    return num1 + num2;
+    // Security: Additional validation to ensure inputs are numbers
+    if (typeof num1 !== 'number' || typeof num2 !== 'number') {
+        return {
+            success: false,
+            error: 'Invalid input types'
+        };
+    }
+
+    // Security: Check for NaN or Infinity
+    if (isNaN(num1) || isNaN(num2) || !isFinite(num1) || !isFinite(num2)) {
+        return {
+            success: false,
+            error: 'Invalid number values'
+        };
+    }
+
+    const result = num1 + num2;
+
+    // Security: Check if result overflowed to Infinity
+    if (!isFinite(result)) {
+        return {
+            success: false,
+            error: 'Result is too large'
+        };
+    }
+
+    return {
+        success: true,
+        value: result
+    };
 }
 
 /**
  * Calculate and display the result of adding two input numbers
+ * Security: Comprehensive input validation and error handling
  */
 function calculateSum() {
+    // Security: Rate limiting to prevent rapid-fire calculations (DoS prevention)
+    const currentTime = Date.now();
+    if (currentTime - lastCalculateTime < CALCULATE_RATE_LIMIT_MS) {
+        return; // Silently ignore if called too frequently
+    }
+    lastCalculateTime = currentTime;
+
     const input1 = document.getElementById('number1');
     const input2 = document.getElementById('number2');
     const resultDisplay = document.getElementById('result-display');
 
-    // Validate that all elements exist
+    // Security: Validate that all elements exist
     if (!input1 || !input2 || !resultDisplay) {
-        console.error('Calculator elements not found in DOM');
+        // Security: Generic error message to avoid leaking implementation details
+        if (resultDisplay) {
+            resultDisplay.textContent = 'Result: Error - System unavailable';
+        }
         return;
     }
 
-    // Parse the input values as numbers
-    const num1 = parseFloat(input1.value);
-    const num2 = parseFloat(input2.value);
+    // Security: Validate and sanitize first input
+    const validation1 = validateNumberInput(input1.value, 'First number');
+    if (!validation1.isValid) {
+        // Security: Use textContent (not innerHTML) to prevent XSS attacks
+        resultDisplay.textContent = `Result: ${validation1.error}`;
+        return;
+    }
 
-    // Calculate the sum
-    const result = addNumbers(num1, num2);
+    // Security: Validate and sanitize second input
+    const validation2 = validateNumberInput(input2.value, 'Second number');
+    if (!validation2.isValid) {
+        // Security: Use textContent (not innerHTML) to prevent XSS attacks
+        resultDisplay.textContent = `Result: ${validation2.error}`;
+        return;
+    }
 
-    // Display the result
-    resultDisplay.textContent = `Result: ${result}`;
+    // Security: Perform addition with overflow protection
+    const addResult = addNumbers(validation1.value, validation2.value);
+
+    if (!addResult.success) {
+        // Security: Display sanitized error message
+        resultDisplay.textContent = `Result: ${addResult.error}`;
+        return;
+    }
+
+    // Security: Display result using textContent (prevents XSS)
+    // Format the number to avoid extremely long decimal representations
+    const formattedResult = Number.isInteger(addResult.value)
+        ? addResult.value
+        : addResult.value.toFixed(10).replace(/\.?0+$/, ''); // Remove trailing zeros
+
+    resultDisplay.textContent = `Result: ${formattedResult}`;
 }
 
 // Initialize the event listener when the DOM is fully loaded

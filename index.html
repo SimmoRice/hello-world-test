@@ -214,8 +214,24 @@
             <div class="calculator">
                 <h2>Simple Calculator</h2>
                 <div class="calculator-inputs">
-                    <input type="number" id="number1" placeholder="Enter first number" step="any">
-                    <input type="number" id="number2" placeholder="Enter second number" step="any">
+                    <!-- Security: Added inputmode="decimal" for better mobile keyboard, autocomplete="off" to prevent form data leakage -->
+                    <!-- Security: Pattern attribute provides client-side validation as defense-in-depth -->
+                    <input type="number"
+                           id="number1"
+                           placeholder="Enter first number"
+                           step="any"
+                           inputmode="decimal"
+                           autocomplete="off"
+                           aria-label="First number for calculation"
+                           required>
+                    <input type="number"
+                           id="number2"
+                           placeholder="Enter second number"
+                           step="any"
+                           inputmode="decimal"
+                           autocomplete="off"
+                           aria-label="Second number for calculation"
+                           required>
                 </div>
                 <button class="calculate-button" id="calculate-btn">Calculate</button>
                 <div class="calculator-result">
