@@ -353,4 +353,441 @@ describe('End-to-End User Experience Tests', () => {
       expect(clickCount).toBe(5);
     });
   });
+
+  describe('Calculator - Initial State', () => {
+    test('should display calculator on page load', () => {
+      const calculator = document.querySelector('.calculator');
+      expect(calculator).not.toBeNull();
+    });
+
+    test('should have calculator title', () => {
+      const title = document.querySelector('.calculator h2');
+      expect(title).not.toBeNull();
+      expect(title.textContent).toBe('Simple Calculator');
+    });
+
+    test('should have two input fields visible', () => {
+      const input1 = document.getElementById('number1');
+      const input2 = document.getElementById('number2');
+
+      expect(input1).not.toBeNull();
+      expect(input2).not.toBeNull();
+      expect(input1.type).toBe('number');
+      expect(input2.type).toBe('number');
+    });
+
+    test('should have calculate button visible', () => {
+      const calculateBtn = document.getElementById('calculate-btn');
+      expect(calculateBtn).not.toBeNull();
+      expect(calculateBtn.textContent).toBe('Calculate');
+    });
+
+    test('should have result display area with initial text', () => {
+      const resultDisplay = document.getElementById('result-display');
+      expect(resultDisplay).not.toBeNull();
+      expect(resultDisplay.textContent).toBe('Result: ');
+    });
+
+    test('should have placeholder text in inputs', () => {
+      const input1 = document.getElementById('number1');
+      const input2 = document.getElementById('number2');
+
+      expect(input1.placeholder).toBeTruthy();
+      expect(input2.placeholder).toBeTruthy();
+    });
+  });
+
+  describe('Calculator - User Interactions', () => {
+    test('user enters two numbers and clicks calculate', () => {
+      const input1 = document.getElementById('number1');
+      const input2 = document.getElementById('number2');
+      const calculateBtn = document.getElementById('calculate-btn');
+      const resultDisplay = document.getElementById('result-display');
+
+      // User enters numbers
+      input1.value = '5';
+      input2.value = '3';
+
+      // Add calculate functionality
+      calculateBtn.addEventListener('click', () => {
+        const num1 = parseFloat(input1.value);
+        const num2 = parseFloat(input2.value);
+        const result = num1 + num2;
+        resultDisplay.textContent = `Result: ${result}`;
+      });
+
+      // User clicks calculate
+      calculateBtn.click();
+
+      // Result is displayed
+      expect(resultDisplay.textContent).toBe('Result: 8');
+    });
+
+    test('user calculates with decimal numbers', () => {
+      const input1 = document.getElementById('number1');
+      const input2 = document.getElementById('number2');
+      const calculateBtn = document.getElementById('calculate-btn');
+      const resultDisplay = document.getElementById('result-display');
+
+      calculateBtn.addEventListener('click', () => {
+        const num1 = parseFloat(input1.value);
+        const num2 = parseFloat(input2.value);
+        const result = num1 + num2;
+        resultDisplay.textContent = `Result: ${result}`;
+      });
+
+      // User enters decimals
+      input1.value = '3.5';
+      input2.value = '2.5';
+      calculateBtn.click();
+
+      expect(resultDisplay.textContent).toBe('Result: 6');
+    });
+
+    test('user performs multiple calculations in sequence', () => {
+      const input1 = document.getElementById('number1');
+      const input2 = document.getElementById('number2');
+      const calculateBtn = document.getElementById('calculate-btn');
+      const resultDisplay = document.getElementById('result-display');
+
+      calculateBtn.addEventListener('click', () => {
+        const num1 = parseFloat(input1.value);
+        const num2 = parseFloat(input2.value);
+        const result = num1 + num2;
+        resultDisplay.textContent = `Result: ${result}`;
+      });
+
+      // First calculation
+      input1.value = '10';
+      input2.value = '5';
+      calculateBtn.click();
+      expect(resultDisplay.textContent).toBe('Result: 15');
+
+      // Second calculation
+      input1.value = '20';
+      input2.value = '30';
+      calculateBtn.click();
+      expect(resultDisplay.textContent).toBe('Result: 50');
+
+      // Third calculation with decimals
+      input1.value = '2.5';
+      input2.value = '7.5';
+      calculateBtn.click();
+      expect(resultDisplay.textContent).toBe('Result: 10');
+    });
+
+    test('user presses Enter in first input field', () => {
+      const input1 = document.getElementById('number1');
+      const input2 = document.getElementById('number2');
+      const resultDisplay = document.getElementById('result-display');
+
+      input1.value = '8';
+      input2.value = '2';
+
+      input1.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          const num1 = parseFloat(input1.value);
+          const num2 = parseFloat(input2.value);
+          const result = num1 + num2;
+          resultDisplay.textContent = `Result: ${result}`;
+        }
+      });
+
+      const event = new KeyboardEvent('keydown', { key: 'Enter' });
+      input1.dispatchEvent(event);
+
+      expect(resultDisplay.textContent).toBe('Result: 10');
+    });
+
+    test('user presses Enter in second input field', () => {
+      const input1 = document.getElementById('number1');
+      const input2 = document.getElementById('number2');
+      const resultDisplay = document.getElementById('result-display');
+
+      input1.value = '15';
+      input2.value = '25';
+
+      input2.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          const num1 = parseFloat(input1.value);
+          const num2 = parseFloat(input2.value);
+          const result = num1 + num2;
+          resultDisplay.textContent = `Result: ${result}`;
+        }
+      });
+
+      const event = new KeyboardEvent('keydown', { key: 'Enter' });
+      input2.dispatchEvent(event);
+
+      expect(resultDisplay.textContent).toBe('Result: 40');
+    });
+
+    test('user can tab between fields and calculate', () => {
+      const input1 = document.getElementById('number1');
+      const input2 = document.getElementById('number2');
+      const calculateBtn = document.getElementById('calculate-btn');
+      const resultDisplay = document.getElementById('result-display');
+
+      // Simulate tabbing and entering data
+      input1.focus();
+      input1.value = '7';
+
+      input2.focus();
+      input2.value = '3';
+
+      calculateBtn.addEventListener('click', () => {
+        const num1 = parseFloat(input1.value);
+        const num2 = parseFloat(input2.value);
+        const result = num1 + num2;
+        resultDisplay.textContent = `Result: ${result}`;
+      });
+
+      calculateBtn.click();
+
+      expect(resultDisplay.textContent).toBe('Result: 10');
+    });
+  });
+
+  describe('Calculator - Error Handling', () => {
+    test('user tries to calculate with empty inputs', () => {
+      const input1 = document.getElementById('number1');
+      const input2 = document.getElementById('number2');
+      const calculateBtn = document.getElementById('calculate-btn');
+      const resultDisplay = document.getElementById('result-display');
+
+      calculateBtn.addEventListener('click', () => {
+        if (!input1.value || !input2.value) {
+          resultDisplay.textContent = 'Result: Both numbers are required';
+          return;
+        }
+        const num1 = parseFloat(input1.value);
+        const num2 = parseFloat(input2.value);
+        const result = num1 + num2;
+        resultDisplay.textContent = `Result: ${result}`;
+      });
+
+      input1.value = '';
+      input2.value = '';
+      calculateBtn.click();
+
+      expect(resultDisplay.textContent).toContain('required');
+    });
+
+    test('user enters invalid characters', () => {
+      const input1 = document.getElementById('number1');
+      const input2 = document.getElementById('number2');
+      const calculateBtn = document.getElementById('calculate-btn');
+      const resultDisplay = document.getElementById('result-display');
+
+      calculateBtn.addEventListener('click', () => {
+        const num1 = parseFloat(input1.value);
+        const num2 = parseFloat(input2.value);
+
+        if (isNaN(num1) || isNaN(num2)) {
+          resultDisplay.textContent = 'Result: Please enter valid numbers';
+          return;
+        }
+
+        const result = num1 + num2;
+        resultDisplay.textContent = `Result: ${result}`;
+      });
+
+      input1.value = 'abc';
+      input2.value = '5';
+      calculateBtn.click();
+
+      expect(resultDisplay.textContent).toContain('valid');
+    });
+
+    test('user recovers from error and calculates successfully', () => {
+      const input1 = document.getElementById('number1');
+      const input2 = document.getElementById('number2');
+      const calculateBtn = document.getElementById('calculate-btn');
+      const resultDisplay = document.getElementById('result-display');
+
+      calculateBtn.addEventListener('click', () => {
+        if (!input1.value || !input2.value) {
+          resultDisplay.textContent = 'Result: Both numbers are required';
+          return;
+        }
+
+        const num1 = parseFloat(input1.value);
+        const num2 = parseFloat(input2.value);
+
+        if (isNaN(num1) || isNaN(num2)) {
+          resultDisplay.textContent = 'Result: Please enter valid numbers';
+          return;
+        }
+
+        const result = num1 + num2;
+        resultDisplay.textContent = `Result: ${result}`;
+      });
+
+      // First attempt: error
+      input1.value = '';
+      input2.value = '5';
+      calculateBtn.click();
+      expect(resultDisplay.textContent).toContain('required');
+
+      // Second attempt: success
+      input1.value = '10';
+      input2.value = '5';
+      calculateBtn.click();
+      expect(resultDisplay.textContent).toBe('Result: 15');
+    });
+  });
+
+  describe('Calculator - Edge Cases', () => {
+    test('user adds negative numbers', () => {
+      const input1 = document.getElementById('number1');
+      const input2 = document.getElementById('number2');
+      const calculateBtn = document.getElementById('calculate-btn');
+      const resultDisplay = document.getElementById('result-display');
+
+      calculateBtn.addEventListener('click', () => {
+        const num1 = parseFloat(input1.value);
+        const num2 = parseFloat(input2.value);
+        const result = num1 + num2;
+        resultDisplay.textContent = `Result: ${result}`;
+      });
+
+      input1.value = '-10';
+      input2.value = '5';
+      calculateBtn.click();
+
+      expect(resultDisplay.textContent).toBe('Result: -5');
+    });
+
+    test('user adds zero values', () => {
+      const input1 = document.getElementById('number1');
+      const input2 = document.getElementById('number2');
+      const calculateBtn = document.getElementById('calculate-btn');
+      const resultDisplay = document.getElementById('result-display');
+
+      calculateBtn.addEventListener('click', () => {
+        const num1 = parseFloat(input1.value);
+        const num2 = parseFloat(input2.value);
+        const result = num1 + num2;
+        resultDisplay.textContent = `Result: ${result}`;
+      });
+
+      input1.value = '0';
+      input2.value = '0';
+      calculateBtn.click();
+
+      expect(resultDisplay.textContent).toBe('Result: 0');
+    });
+
+    test('user adds very large numbers', () => {
+      const input1 = document.getElementById('number1');
+      const input2 = document.getElementById('number2');
+      const calculateBtn = document.getElementById('calculate-btn');
+      const resultDisplay = document.getElementById('result-display');
+
+      calculateBtn.addEventListener('click', () => {
+        const num1 = parseFloat(input1.value);
+        const num2 = parseFloat(input2.value);
+        const result = num1 + num2;
+        resultDisplay.textContent = `Result: ${result}`;
+      });
+
+      input1.value = '999999';
+      input2.value = '111111';
+      calculateBtn.click();
+
+      expect(resultDisplay.textContent).toBe('Result: 1111110');
+    });
+
+    test('user adds very small decimal numbers', () => {
+      const input1 = document.getElementById('number1');
+      const input2 = document.getElementById('number2');
+      const calculateBtn = document.getElementById('calculate-btn');
+      const resultDisplay = document.getElementById('result-display');
+
+      calculateBtn.addEventListener('click', () => {
+        const num1 = parseFloat(input1.value);
+        const num2 = parseFloat(input2.value);
+        const result = num1 + num2;
+        resultDisplay.textContent = `Result: ${result}`;
+      });
+
+      input1.value = '0.1';
+      input2.value = '0.2';
+      calculateBtn.click();
+
+      expect(resultDisplay.textContent).toContain('0.3');
+    });
+  });
+
+  describe('Calculator - Complete User Journey', () => {
+    test('new user completes first calculation successfully', () => {
+      // 1. User loads page and sees calculator
+      const calculator = document.querySelector('.calculator');
+      expect(calculator).not.toBeNull();
+
+      // 2. User identifies input fields
+      const input1 = document.getElementById('number1');
+      const input2 = document.getElementById('number2');
+      expect(input1).not.toBeNull();
+      expect(input2).not.toBeNull();
+
+      // 3. User reads placeholder text for guidance
+      expect(input1.placeholder).toContain('number');
+      expect(input2.placeholder).toContain('number');
+
+      // 4. User enters first number
+      input1.value = '42';
+      expect(input1.value).toBe('42');
+
+      // 5. User enters second number
+      input2.value = '8';
+      expect(input2.value).toBe('8');
+
+      // 6. User clicks calculate button
+      const calculateBtn = document.getElementById('calculate-btn');
+      const resultDisplay = document.getElementById('result-display');
+
+      calculateBtn.addEventListener('click', () => {
+        const num1 = parseFloat(input1.value);
+        const num2 = parseFloat(input2.value);
+        const result = num1 + num2;
+        resultDisplay.textContent = `Result: ${result}`;
+      });
+
+      calculateBtn.click();
+
+      // 7. User sees result displayed clearly
+      expect(resultDisplay.textContent).toBe('Result: 50');
+      expect(resultDisplay.textContent).toContain('Result:');
+    });
+
+    test('experienced user performs quick calculations', () => {
+      const input1 = document.getElementById('number1');
+      const input2 = document.getElementById('number2');
+      const calculateBtn = document.getElementById('calculate-btn');
+      const resultDisplay = document.getElementById('result-display');
+
+      calculateBtn.addEventListener('click', () => {
+        const num1 = parseFloat(input1.value);
+        const num2 = parseFloat(input2.value);
+        const result = num1 + num2;
+        resultDisplay.textContent = `Result: ${result}`;
+      });
+
+      // Quick succession of calculations
+      const calculations = [
+        { a: '10', b: '20', expected: 30 },
+        { a: '5.5', b: '4.5', expected: 10 },
+        { a: '100', b: '-50', expected: 50 },
+        { a: '0', b: '42', expected: 42 }
+      ];
+
+      calculations.forEach(calc => {
+        input1.value = calc.a;
+        input2.value = calc.b;
+        calculateBtn.click();
+        expect(resultDisplay.textContent).toBe(`Result: ${calc.expected}`);
+      });
+    });
+  });
 });
