@@ -12,3 +12,12 @@
 
 # AI Scrum Master
 .ui_protection_cache.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.coverage
+.pytest_cache/
+htmlcov/
