@@ -6,8 +6,9 @@
     <title>Hello World</title>
 
     <!-- Security Headers: Content Security Policy to prevent XSS attacks -->
-    <!-- Updated to allow inline scripts for dark mode functionality -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; font-src 'self';">
+    <!-- Strict CSP without unsafe-inline - scripts loaded from same origin only -->
+    <!-- style-src uses SHA256 hash to allow only the specific inline style block -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'sha256-rtLz4dHvmnt6/dNy68e+6en9xeE+Uog4C8s/jjeXAJY='; font-src 'self';">
 
     <!-- Security: Prevent MIME type sniffing -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
@@ -220,14 +221,13 @@
 </head>
 <body>
     <!-- Dark mode toggle control -->
-    <div class="dark-mode-toggle" onclick="toggleDarkMode()" role="button" aria-label="Toggle dark mode" tabindex="0">
+    <!-- Security: Removed inline event handlers to comply with strict CSP -->
+    <div class="dark-mode-toggle" role="button" aria-label="Toggle dark mode" tabindex="0">
         <span class="theme-icon sun-icon">☀️</span>
         <input
             type="checkbox"
             id="darkModeToggle"
             class="toggle-checkbox"
-            onclick="event.stopPropagation()"
-            onchange="toggleDarkMode()"
             aria-label="Dark mode toggle"
         >
         <span class="theme-icon moon-icon">🌙</span>
@@ -237,55 +237,7 @@
         <h1>Hello World</h1>
     </main>
 
-    <script>
-        /**
-         * Initialize dark mode from localStorage on page load
-         * This prevents flash of unstyled content (FOUC)
-         */
-        (function initializeDarkMode() {
-            // Get saved preference from localStorage, default to 'light'
-            const savedTheme = localStorage.getItem('theme') || 'light';
-
-            // Apply theme to document
-            document.documentElement.setAttribute('data-theme', savedTheme);
-
-            // Update checkbox state
-            const checkbox = document.getElementById('darkModeToggle');
-            if (checkbox) {
-                checkbox.checked = savedTheme === 'dark';
-            }
-        })();
-
-        /**
-         * Toggle between light and dark mode
-         * Saves preference to localStorage for persistence
-         */
-        function toggleDarkMode() {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
-            // Update theme attribute
-            document.documentElement.setAttribute('data-theme', newTheme);
-
-            // Save preference to localStorage
-            localStorage.setItem('theme', newTheme);
-
-            // Update checkbox state
-            const checkbox = document.getElementById('darkModeToggle');
-            if (checkbox) {
-                checkbox.checked = newTheme === 'dark';
-            }
-        }
-
-        /**
-         * Handle keyboard accessibility for the toggle
-         */
-        document.querySelector('.dark-mode-toggle').addEventListener('keydown', function(event) {
-            if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                toggleDarkMode();
-            }
-        });
-    </script>
+    <!-- Security: External script loaded from same origin to comply with strict CSP -->
+    <script src="darkmode.js"></script>
 </body>
 </html>
