@@ -261,13 +261,14 @@ class TestSecurityHeaders:
 
     def test_no_inline_javascript(self, html_content):
         """Test that page doesn't include inline JavaScript (security best practice)"""
-        # Check for script tags
-        has_script_tag = re.search(r'<script[^>]*>', html_content, re.IGNORECASE)
+        # Check for inline script tags (with content inside)
+        has_inline_script = re.search(r'<script[^>]*>(?!</script>).+</script>', html_content, re.IGNORECASE | re.DOTALL)
+        # External scripts with src are okay (CSP compliant)
         # Check for inline event handlers (more precise pattern)
         # Look for on* attributes in HTML tags (onclick, onload, etc.)
         has_inline_events = re.search(r'<[^>]+\son\w+\s*=\s*["\']', html_content, re.IGNORECASE)
 
-        assert not has_script_tag, "Page should not include <script> tags"
+        assert not has_inline_script, "Page should not include inline <script> tags with code"
         assert not has_inline_events, \
             "Page should not include inline event handlers (onclick, onload, etc.)"
 

@@ -173,3 +173,26 @@ if (document.readyState === 'loading') {
     initializeDarkMode();
     setupEventListeners();
 }
+
+// Export functions for testing (Node.js environment)
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        validateTheme,
+        getSavedTheme,
+        saveTheme,
+        applyTheme,
+        initializeDarkMode,
+        toggleDarkMode,
+        setupEventListeners,
+        ALLOWED_THEMES,
+        DEFAULT_THEME
+    };
+    // Make functions available globally for tests
+    global.validateTheme = validateTheme;
+    global.getSavedTheme = getSavedTheme;
+    global.saveTheme = saveTheme;
+    global.applyTheme = applyTheme;
+    global.initializeDarkMode = initializeDarkMode;
+    global.toggleDarkMode = toggleDarkMode;
+    global.setupEventListeners = setupEventListeners;
+}
