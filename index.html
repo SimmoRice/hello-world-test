@@ -4,6 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hello World</title>
+
+    <!-- Security Headers: Content Security Policy to prevent XSS attacks -->
+    <!-- Restricts content sources to same origin only, no inline scripts allowed -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; font-src 'self';">
+
+    <!-- Security: Prevent MIME type sniffing -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+
+    <!-- Security: Referrer policy to control information leakage -->
+    <meta name="referrer" content="no-referrer">
+
+    <!-- Security: Permissions policy to disable unnecessary features -->
+    <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()">
     <style>
         /* Reset default margins and padding */
         * {
