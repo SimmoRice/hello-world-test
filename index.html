@@ -6,8 +6,8 @@
     <title>Hello World</title>
 
     <!-- Security Headers: Content Security Policy to prevent XSS attacks -->
-    <!-- Restricts content sources to same origin only, no inline scripts allowed -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; font-src 'self';">
+    <!-- Updated to allow inline scripts for dark mode functionality -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; font-src 'self';">
 
     <!-- Security: Prevent MIME type sniffing -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
@@ -18,6 +18,36 @@
     <!-- Security: Permissions policy to disable unnecessary features -->
     <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()">
     <style>
+        /* CSS Variables for theming */
+        :root {
+            --bg-gradient-start: #667eea;
+            --bg-gradient-end: #764ba2;
+            --text-color: #ffffff;
+            --toggle-bg: rgba(255, 255, 255, 0.2);
+            --toggle-border: rgba(255, 255, 255, 0.3);
+            --toggle-hover: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Dark mode color scheme */
+        [data-theme="dark"] {
+            --bg-gradient-start: #1a1a2e;
+            --bg-gradient-end: #16213e;
+            --text-color: #e0e0e0;
+            --toggle-bg: rgba(255, 255, 255, 0.1);
+            --toggle-border: rgba(255, 255, 255, 0.2);
+            --toggle-hover: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Light mode color scheme */
+        [data-theme="light"] {
+            --bg-gradient-start: #f5f7fa;
+            --bg-gradient-end: #c3cfe2;
+            --text-color: #2d3748;
+            --toggle-bg: rgba(0, 0, 0, 0.05);
+            --toggle-border: rgba(0, 0, 0, 0.1);
+            --toggle-hover: rgba(0, 0, 0, 0.1);
+        }
+
         /* Reset default margins and padding */
         * {
             margin: 0;
@@ -28,22 +58,25 @@
         /* Center content both horizontally and vertically */
         body {
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            transition: background 0.3s ease;
         }
 
         /* Style the main heading */
         h1 {
-            color: #ffffff;
+            color: var(--text-color);
             font-size: 4rem;
             font-weight: 700;
             text-align: center;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
             padding: 2rem;
             animation: fadeIn 1s ease-in;
+            transition: color 0.3s ease;
         }
 
         /* Fade-in animation */
@@ -58,17 +91,201 @@
             }
         }
 
+        /* Dark mode toggle container */
+        .dark-mode-toggle {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: var(--toggle-bg);
+            padding: 0.75rem 1.25rem;
+            border-radius: 2rem;
+            border: 1px solid var(--toggle-border);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .dark-mode-toggle:hover {
+            background: var(--toggle-hover);
+            transform: scale(1.05);
+        }
+
+        /* Toggle label text */
+        .toggle-label {
+            color: var(--text-color);
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        /* Custom checkbox styling */
+        .toggle-checkbox {
+            appearance: none;
+            width: 3rem;
+            height: 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 1rem;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            outline: none;
+        }
+
+        .toggle-checkbox::before {
+            content: '';
+            position: absolute;
+            width: 1.2rem;
+            height: 1.2rem;
+            border-radius: 50%;
+            background: white;
+            top: 0.15rem;
+            left: 0.15rem;
+            transition: transform 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-checkbox:checked {
+            background: #667eea;
+        }
+
+        .toggle-checkbox:checked::before {
+            transform: translateX(1.5rem);
+        }
+
+        /* Theme icons */
+        .theme-icon {
+            font-size: 1.2rem;
+            transition: opacity 0.3s ease;
+        }
+
+        .sun-icon {
+            opacity: 1;
+        }
+
+        .moon-icon {
+            opacity: 0.5;
+        }
+
+        [data-theme="dark"] .sun-icon {
+            opacity: 0.5;
+        }
+
+        [data-theme="dark"] .moon-icon {
+            opacity: 1;
+        }
+
+        [data-theme="light"] .sun-icon {
+            opacity: 1;
+        }
+
+        [data-theme="light"] .moon-icon {
+            opacity: 0.5;
+        }
+
         /* Responsive design for smaller screens */
         @media (max-width: 768px) {
             h1 {
                 font-size: 2.5rem;
             }
+
+            .dark-mode-toggle {
+                top: 1rem;
+                right: 1rem;
+                padding: 0.5rem 1rem;
+            }
+
+            .toggle-label {
+                font-size: 0.8rem;
+            }
+
+            .toggle-checkbox {
+                width: 2.5rem;
+                height: 1.25rem;
+            }
+
+            .toggle-checkbox::before {
+                width: 1rem;
+                height: 1rem;
+            }
+
+            .toggle-checkbox:checked::before {
+                transform: translateX(1.25rem);
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Dark mode toggle control -->
+    <div class="dark-mode-toggle" onclick="toggleDarkMode()" role="button" aria-label="Toggle dark mode" tabindex="0">
+        <span class="theme-icon sun-icon">☀️</span>
+        <input
+            type="checkbox"
+            id="darkModeToggle"
+            class="toggle-checkbox"
+            onclick="event.stopPropagation()"
+            onchange="toggleDarkMode()"
+            aria-label="Dark mode toggle"
+        >
+        <span class="theme-icon moon-icon">🌙</span>
+    </div>
+
     <main>
         <h1>Hello World</h1>
     </main>
+
+    <script>
+        /**
+         * Initialize dark mode from localStorage on page load
+         * This prevents flash of unstyled content (FOUC)
+         */
+        (function initializeDarkMode() {
+            // Get saved preference from localStorage, default to 'light'
+            const savedTheme = localStorage.getItem('theme') || 'light';
+
+            // Apply theme to document
+            document.documentElement.setAttribute('data-theme', savedTheme);
+
+            // Update checkbox state
+            const checkbox = document.getElementById('darkModeToggle');
+            if (checkbox) {
+                checkbox.checked = savedTheme === 'dark';
+            }
+        })();
+
+        /**
+         * Toggle between light and dark mode
+         * Saves preference to localStorage for persistence
+         */
+        function toggleDarkMode() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+            // Update theme attribute
+            document.documentElement.setAttribute('data-theme', newTheme);
+
+            // Save preference to localStorage
+            localStorage.setItem('theme', newTheme);
+
+            // Update checkbox state
+            const checkbox = document.getElementById('darkModeToggle');
+            if (checkbox) {
+                checkbox.checked = newTheme === 'dark';
+            }
+        }
+
+        /**
+         * Handle keyboard accessibility for the toggle
+         */
+        document.querySelector('.dark-mode-toggle').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                toggleDarkMode();
+            }
+        });
+    </script>
 </body>
 </html>
