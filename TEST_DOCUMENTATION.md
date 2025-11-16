@@ -61,9 +61,9 @@ Validates security headers and best practices:
 - ✅ X-Content-Type-Options: nosniff
 - ✅ Referrer-Policy to prevent information leakage
 - ✅ Permissions-Policy to disable unnecessary features
-- ✅ No inline JavaScript or event handlers
+- ✅ JavaScript follows security best practices (uses textContent, no eval(), no inline event handlers)
 
-**Purpose**: Ensures the page follows security best practices to prevent XSS and other attacks.
+**Purpose**: Ensures the page follows security best practices to prevent XSS and other attacks. When JavaScript is present, validates that it uses secure coding practices.
 
 ### 5. Accessibility Tests (5 tests)
 Tests accessibility features for users with disabilities:
@@ -112,7 +112,9 @@ Validates HTML best practices and standards:
 
 ### Security Testing ✅
 - CSP headers prevent XSS attacks
-- No inline scripts or event handlers
+- JavaScript uses secure coding practices (textContent, addEventListener)
+- No eval() or document.write() usage
+- No inline event handlers (onclick, etc.)
 - Content type sniffing prevented
 - Permissions locked down
 - Referrer policy configured

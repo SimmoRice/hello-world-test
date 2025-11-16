@@ -6,6 +6,11 @@
     <title>Hello World</title>
 
     <!-- Security Headers: Content Security Policy to prevent XSS attacks -->
+    <!-- Restricts content sources to same origin only, allows inline scripts for functionality -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; font-src 'self';">
+    <!-- Strict CSP without unsafe-inline - scripts loaded from same origin only -->
+    <!-- style-src uses SHA256 hash to allow only the specific inline style block -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'sha256-rtLz4dHvmnt6/dNy68e+6en9xeE+Uog4C8s/jjeXAJY='; font-src 'self';">
     <!-- Restricts content sources to same origin only, no inline scripts allowed -->
     <!-- Note: 'unsafe-inline' for style-src is required for inline styles in this static page -->
     <!-- In production, consider extracting styles to external CSS file -->
@@ -14,15 +19,49 @@
     <!-- Security: Prevent clickjacking attacks -->
     <meta http-equiv="X-Frame-Options" content="DENY">
 
-    <!-- Security: Prevent MIME type sniffing -->
+    <!-- Security: Prevent MIME type sniffing to avoid MIME confusion attacks -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
 
-    <!-- Security: Referrer policy to control information leakage -->
+    <!-- Security: Clickjacking protection - prevent page from being framed by malicious sites -->
+    <meta http-equiv="X-Frame-Options" content="DENY">
+
+    <!-- Security: Referrer policy to control information leakage across origins -->
     <meta name="referrer" content="no-referrer">
 
-    <!-- Security: Permissions policy to disable unnecessary features -->
-    <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()">
+    <!-- Security: Permissions policy to disable unnecessary browser features -->
+    <!-- Reduces attack surface by blocking geolocation, microphone, camera, payment, USB -->
+    <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=(), payment=(), usb=()">
     <style>
+        /* CSS Variables for theming */
+        :root {
+            --bg-gradient-start: #667eea;
+            --bg-gradient-end: #764ba2;
+            --text-color: #ffffff;
+            --toggle-bg: rgba(255, 255, 255, 0.2);
+            --toggle-border: rgba(255, 255, 255, 0.3);
+            --toggle-hover: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Dark mode color scheme */
+        [data-theme="dark"] {
+            --bg-gradient-start: #1a1a2e;
+            --bg-gradient-end: #16213e;
+            --text-color: #e0e0e0;
+            --toggle-bg: rgba(255, 255, 255, 0.1);
+            --toggle-border: rgba(255, 255, 255, 0.2);
+            --toggle-hover: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Light mode color scheme */
+        [data-theme="light"] {
+            --bg-gradient-start: #f5f7fa;
+            --bg-gradient-end: #c3cfe2;
+            --text-color: #2d3748;
+            --toggle-bg: rgba(0, 0, 0, 0.05);
+            --toggle-border: rgba(0, 0, 0, 0.1);
+            --toggle-hover: rgba(0, 0, 0, 0.1);
+        }
+
         /* Reset default margins and padding */
         * {
             margin: 0;
@@ -33,22 +72,25 @@
         /* Center content both horizontally and vertically */
         body {
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            transition: background 0.3s ease;
         }
 
         /* Style the main heading */
         h1 {
-            color: #ffffff;
+            color: var(--text-color);
             font-size: 4rem;
             font-weight: 700;
             text-align: center;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
             padding: 2rem;
             animation: fadeIn 1s ease-in;
+            transition: color 0.3s ease;
         }
 
         /* Fade-in animation */
@@ -63,10 +105,129 @@
             }
         }
 
+        /* Dark mode toggle container */
+        .dark-mode-toggle {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: var(--toggle-bg);
+            padding: 0.75rem 1.25rem;
+            border-radius: 2rem;
+            border: 1px solid var(--toggle-border);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .dark-mode-toggle:hover {
+            background: var(--toggle-hover);
+            transform: scale(1.05);
+        }
+
+        /* Toggle label text */
+        .toggle-label {
+            color: var(--text-color);
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        /* Custom checkbox styling */
+        .toggle-checkbox {
+            appearance: none;
+            width: 3rem;
+            height: 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 1rem;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            outline: none;
+        }
+
+        .toggle-checkbox::before {
+            content: '';
+            position: absolute;
+            width: 1.2rem;
+            height: 1.2rem;
+            border-radius: 50%;
+            background: white;
+            top: 0.15rem;
+            left: 0.15rem;
+            transition: transform 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-checkbox:checked {
+            background: #667eea;
+        }
+
+        .toggle-checkbox:checked::before {
+            transform: translateX(1.5rem);
+        }
+
+        /* Theme icons */
+        .theme-icon {
+            font-size: 1.2rem;
+            transition: opacity 0.3s ease;
+        }
+
+        .sun-icon {
+            opacity: 1;
+        }
+
+        .moon-icon {
+            opacity: 0.5;
+        }
+
+        [data-theme="dark"] .sun-icon {
+            opacity: 0.5;
+        }
+
+        [data-theme="dark"] .moon-icon {
+            opacity: 1;
+        }
+
+        [data-theme="light"] .sun-icon {
+            opacity: 1;
+        }
+
+        [data-theme="light"] .moon-icon {
+            opacity: 0.5;
+        }
+
         /* Responsive design for smaller screens */
         @media (max-width: 768px) {
             h1 {
                 font-size: 2.5rem;
+            }
+
+            .dark-mode-toggle {
+                top: 1rem;
+                right: 1rem;
+                padding: 0.5rem 1rem;
+            }
+
+            .toggle-label {
+                font-size: 0.8rem;
+            }
+
+            .toggle-checkbox {
+                width: 2.5rem;
+                height: 1.25rem;
+            }
+
+            .toggle-checkbox::before {
+                width: 1rem;
+                height: 1rem;
+            }
+
+            .toggle-checkbox:checked::before {
+                transform: translateX(1.25rem);
             }
         }
 
@@ -200,13 +361,165 @@
 
             .calculator h2 {
                 font-size: 1.5rem;
+        /* Container for the counter section */
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        /* Counter display styling */
+        .counter-display {
+            color: #ffffff;
+            font-size: 2rem;
+            font-weight: 600;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem 3rem;
+            border-radius: 1rem;
+            backdrop-filter: blur(10px);
+            animation: fadeIn 1s ease-in 0.3s backwards;
+        }
+
+        /* Button styling */
+        .increment-btn {
+            background: #ffffff;
+            color: #667eea;
+            font-size: 1.25rem;
+            font-weight: 600;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 1s ease-in 0.5s backwards;
+        }
+
+        .increment-btn:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .increment-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Responsive design for counter elements */
+        @media (max-width: 768px) {
+            .counter-display {
+                font-size: 1.5rem;
+                padding: 1rem 2rem;
+            }
+
+            .increment-btn {
+                font-size: 1rem;
+                padding: 0.75rem 1.5rem;
             }
         }
     </style>
 </head>
 <body>
+    <!-- Dark mode toggle control -->
+    <!-- Security: Removed inline event handlers to comply with strict CSP -->
+    <div class="dark-mode-toggle" role="button" aria-label="Toggle dark mode" tabindex="0">
+        <span class="theme-icon sun-icon">☀️</span>
+        <input
+            type="checkbox"
+            id="darkModeToggle"
+            class="toggle-checkbox"
+            aria-label="Dark mode toggle"
+        >
+        <span class="theme-icon moon-icon">🌙</span>
+    </div>
+
     <main>
         <div class="container">
+            <h1>Hello World</h1>
+
+            <!-- Counter Section -->
+            <div class="counter-display" id="counterDisplay">
+                Count: 0
+            </div>
+
+            <button class="increment-btn" id="incrementBtn">
+                Increment
+            </button>
+        </div>
+    </main>
+
+    <script>
+        // Security: Define safe integer boundaries to prevent overflow
+        // JavaScript's Number.MAX_SAFE_INTEGER is 2^53 - 1 (9,007,199,254,740,991)
+        const MAX_SAFE_COUNT = Number.MAX_SAFE_INTEGER;
+        const MIN_SAFE_COUNT = Number.MIN_SAFE_INTEGER;
+
+        // Counter state management
+        let count = 0;
+
+        // Security: Rate limiting to prevent DoS-like rapid clicking attacks
+        let lastClickTime = 0;
+        const RATE_LIMIT_MS = 50; // Minimum 50ms between clicks (20 clicks/second max)
+
+        // Get DOM elements with null checks for security
+        const counterDisplay = document.getElementById('counterDisplay');
+        const incrementBtn = document.getElementById('incrementBtn');
+
+        // Security: Verify required DOM elements exist before proceeding
+        if (!counterDisplay || !incrementBtn) {
+            console.error('Critical DOM elements not found. Application cannot start.');
+            throw new Error('Required elements missing');
+        }
+
+        /**
+         * Increments the counter by 1 and updates the display
+         * Security: Includes overflow protection and rate limiting
+         */
+        function incrementCounter() {
+            // Security: Rate limiting check to prevent abuse
+            const currentTime = Date.now();
+            if (currentTime - lastClickTime < RATE_LIMIT_MS) {
+                // Silently ignore rapid clicks to prevent spam
+                return;
+            }
+            lastClickTime = currentTime;
+
+            // Security: Integer overflow protection
+            // Prevent counter from exceeding JavaScript's safe integer range
+            if (count >= MAX_SAFE_COUNT) {
+                console.warn('Counter has reached maximum safe value');
+                return;
+            }
+
+            // Security: Input validation - ensure count is a valid number
+            if (!Number.isFinite(count)) {
+                console.error('Counter value is not a valid number. Resetting to 0.');
+                count = 0;
+            }
+
+            count++;
+            updateDisplay();
+        }
+
+        /**
+         * Updates the counter display with the current count value
+         * Security: Uses textContent instead of innerHTML to prevent XSS
+         */
+        function updateDisplay() {
+            // Security: textContent prevents XSS by treating content as plain text
+            // This ensures no HTML/script injection even if count is manipulated
+            counterDisplay.textContent = `Count: ${count}`;
+        }
+
+        // Security: Use addEventListener instead of inline onclick to maintain CSP compliance
+        incrementBtn.addEventListener('click', incrementCounter);
+
+        // Security: Initialize display on page load
+        updateDisplay();
+    </script>
             <h1 id="hello-text">Hello World</h1>
             <button class="color-button" id="color-change-btn">Change Color</button>
 
@@ -240,6 +553,9 @@
             </div>
         </div>
     </main>
+
+    <!-- Security: External script loaded from same origin to comply with strict CSP -->
+    <script src="darkmode.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
