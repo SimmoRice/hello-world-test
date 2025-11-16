@@ -9,14 +9,18 @@
     <!-- Restricts content sources to same origin only, allows inline scripts for functionality -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; font-src 'self';">
 
-    <!-- Security: Prevent MIME type sniffing -->
+    <!-- Security: Prevent MIME type sniffing to avoid MIME confusion attacks -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
 
-    <!-- Security: Referrer policy to control information leakage -->
+    <!-- Security: Clickjacking protection - prevent page from being framed by malicious sites -->
+    <meta http-equiv="X-Frame-Options" content="DENY">
+
+    <!-- Security: Referrer policy to control information leakage across origins -->
     <meta name="referrer" content="no-referrer">
 
-    <!-- Security: Permissions policy to disable unnecessary features -->
-    <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()">
+    <!-- Security: Permissions policy to disable unnecessary browser features -->
+    <!-- Reduces attack surface by blocking geolocation, microphone, camera, payment, USB -->
+    <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=(), payment=(), usb=()">
     <style>
         /* Reset default margins and padding */
         * {
@@ -143,30 +147,73 @@
     </main>
 
     <script>
+        // Security: Define safe integer boundaries to prevent overflow
+        // JavaScript's Number.MAX_SAFE_INTEGER is 2^53 - 1 (9,007,199,254,740,991)
+        const MAX_SAFE_COUNT = Number.MAX_SAFE_INTEGER;
+        const MIN_SAFE_COUNT = Number.MIN_SAFE_INTEGER;
+
         // Counter state management
         let count = 0;
 
-        // Get DOM elements
+        // Security: Rate limiting to prevent DoS-like rapid clicking attacks
+        let lastClickTime = 0;
+        const RATE_LIMIT_MS = 50; // Minimum 50ms between clicks (20 clicks/second max)
+
+        // Get DOM elements with null checks for security
         const counterDisplay = document.getElementById('counterDisplay');
         const incrementBtn = document.getElementById('incrementBtn');
 
+        // Security: Verify required DOM elements exist before proceeding
+        if (!counterDisplay || !incrementBtn) {
+            console.error('Critical DOM elements not found. Application cannot start.');
+            throw new Error('Required elements missing');
+        }
+
         /**
          * Increments the counter by 1 and updates the display
+         * Security: Includes overflow protection and rate limiting
          */
         function incrementCounter() {
+            // Security: Rate limiting check to prevent abuse
+            const currentTime = Date.now();
+            if (currentTime - lastClickTime < RATE_LIMIT_MS) {
+                // Silently ignore rapid clicks to prevent spam
+                return;
+            }
+            lastClickTime = currentTime;
+
+            // Security: Integer overflow protection
+            // Prevent counter from exceeding JavaScript's safe integer range
+            if (count >= MAX_SAFE_COUNT) {
+                console.warn('Counter has reached maximum safe value');
+                return;
+            }
+
+            // Security: Input validation - ensure count is a valid number
+            if (!Number.isFinite(count)) {
+                console.error('Counter value is not a valid number. Resetting to 0.');
+                count = 0;
+            }
+
             count++;
             updateDisplay();
         }
 
         /**
          * Updates the counter display with the current count value
+         * Security: Uses textContent instead of innerHTML to prevent XSS
          */
         function updateDisplay() {
+            // Security: textContent prevents XSS by treating content as plain text
+            // This ensures no HTML/script injection even if count is manipulated
             counterDisplay.textContent = `Count: ${count}`;
         }
 
-        // Add event listener to the increment button
+        // Security: Use addEventListener instead of inline onclick to maintain CSP compliance
         incrementBtn.addEventListener('click', incrementCounter);
+
+        // Security: Initialize display on page load
+        updateDisplay();
     </script>
 </body>
 </html>
