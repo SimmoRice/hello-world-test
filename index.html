@@ -6,8 +6,8 @@
     <title>Hello World</title>
 
     <!-- Security Headers: Content Security Policy to prevent XSS attacks -->
-    <!-- Restricts content sources to same origin only, no inline scripts allowed -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; font-src 'self';">
+    <!-- Restricts content sources to same origin only, allows inline scripts for functionality -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; font-src 'self';">
 
     <!-- Security: Prevent MIME type sniffing -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
@@ -64,11 +64,109 @@
                 font-size: 2.5rem;
             }
         }
+
+        /* Container for the counter section */
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        /* Counter display styling */
+        .counter-display {
+            color: #ffffff;
+            font-size: 2rem;
+            font-weight: 600;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem 3rem;
+            border-radius: 1rem;
+            backdrop-filter: blur(10px);
+            animation: fadeIn 1s ease-in 0.3s backwards;
+        }
+
+        /* Button styling */
+        .increment-btn {
+            background: #ffffff;
+            color: #667eea;
+            font-size: 1.25rem;
+            font-weight: 600;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 1s ease-in 0.5s backwards;
+        }
+
+        .increment-btn:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .increment-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Responsive design for counter elements */
+        @media (max-width: 768px) {
+            .counter-display {
+                font-size: 1.5rem;
+                padding: 1rem 2rem;
+            }
+
+            .increment-btn {
+                font-size: 1rem;
+                padding: 0.75rem 1.5rem;
+            }
+        }
     </style>
 </head>
 <body>
     <main>
-        <h1>Hello World</h1>
+        <div class="container">
+            <h1>Hello World</h1>
+
+            <!-- Counter Section -->
+            <div class="counter-display" id="counterDisplay">
+                Count: 0
+            </div>
+
+            <button class="increment-btn" id="incrementBtn">
+                Increment
+            </button>
+        </div>
     </main>
+
+    <script>
+        // Counter state management
+        let count = 0;
+
+        // Get DOM elements
+        const counterDisplay = document.getElementById('counterDisplay');
+        const incrementBtn = document.getElementById('incrementBtn');
+
+        /**
+         * Increments the counter by 1 and updates the display
+         */
+        function incrementCounter() {
+            count++;
+            updateDisplay();
+        }
+
+        /**
+         * Updates the counter display with the current count value
+         */
+        function updateDisplay() {
+            counterDisplay.textContent = `Count: ${count}`;
+        }
+
+        // Add event listener to the increment button
+        incrementBtn.addEventListener('click', incrementCounter);
+    </script>
 </body>
 </html>
